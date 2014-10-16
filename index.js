@@ -1,9 +1,9 @@
-
 var argv = require('yargs').argv;
 var fs = require('fs');
 var path = require('path');
+var npm = require('npm'); // Utiliza o do package global
+var _ = require('lodash');
 require('colors');
-
 
 var args = require('yargs')
   .usage('Inicia diretório com estrutura base como "container" para um determinado projeto e instala o mesmo pelo npm'.underline.green + '\nUsage: $0 nome-pacote-npm')
@@ -34,30 +34,66 @@ function log(msg) {
 
 log('Iniciando a criação do diretório "container" para o projeto'.green);
 
+var packageFullName = args['_'][0];
+// var name = null;
+// var version = null;
+
+npm.load({}, function (err) {
+  // npm.config.set('loglevel', 'warn');
+
+  // Busca o pacote a ser instalado
+  npm.commands.view([packageFullName], true, function (err, data) {
+    if (err) {
+      log('Erro ao obter informações do pacote a ser instalado.'.red + '\n' + err.message);
+      process.exit(1);
+    }
+
+    // Pega versão disponível mais atual
+    var version = _.keys(data)[0];
+    var name = data[version].name;
+
+    // Pegando versões do código
+    var v = /(\d)+\.(\d)\.(.+)/.exec(version);
+    var majorVersion = v[1];
+    var minorVersion = v[2];
+    var patchVersion = v[3];
+
+    // TODO: tratar parâmetros aqui que impacta no nome da pasta principal
+    // Cria diretórios baseado nos parâmetros...
+    var rootPath = path.resolve('.', name + '_v' + majorVersion);
 
 
-console.log(args['_']);
+
+    log('Verifica se o diretório do projeto existe... ' + rootPath.cyan);
+    if (fs.existsSync(rootPath)) {
+      log('Diretório do projeto já existe... impossível continuar'.red);
+      process.exit(1);
+    }
+    log('Cria o diretório base para o projeto');
+    fs.mkdirSync(rootPath);
+    log('Cria diretórios dentro da base do projeto');
+    fs.mkdirSync(path.resolve(rootPath, 'configs'));
+    fs.mkdirSync(path.resolve(rootPath, 'logs'));
+    fs.mkdirSync(path.resolve(rootPath, 'node_modules'));
+
+
+    
 
 
 
 
 
-process.exit(0);
+// .alias('append', ['a'])
+// .describe('append', 'Adiciona o texto específico no final do nome do diretório')
+// .alias('name', ['n'])
+// .describe('name', 'Altera o nome do diretório')
+// .describe('append-latest-minor', 'Adiciona a minor version no final do nome do diretório')
 
-var appName = 'projeto';
 
-var rootPath = path.resolve('.', appName);
-log('Verifica se o diretório do projeto existe... ' + rootPath.cyan);
-if (fs.existsSync(rootPath)) {
-  log('Diretório do projeto já existe... impossível continuar'.red);
-  process.exit(1);
-}
-log('Cria o diretório base para o projeto');
 
-fs.mkdirSync(rootPath);
 
-log('Cria diretórios dentro da base do projeto');
-fs.mkdirSync(path.resolve(appName, 'configs'));
-fs.mkdirSync(path.resolve(appName, 'logs'));
-fs.mkdirSync(path.resolve(appName, 'node_modules'));
 
+
+    
+  });
+});

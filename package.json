@@ -9,10 +9,11 @@
   "author": "Eder Ávila Prado <prado.eder@gmail.com>",
   "license": "ISC",
   "bin": {
-  	"sinopia": "./bin/mpm"
+    "sinopia": "./bin/mpm"
   },
   "dependencies": {
     "colors": "^1.0.3",
+    "lodash": "^2.4.1",
     "yargs": "^1.3.2"
   }
 }

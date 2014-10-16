@@ -60,9 +60,13 @@ npm.load({}, function (err) {
 
     // TODO: tratar parâmetros aqui que impacta no nome da pasta principal
     // Cria diretórios baseado nos parâmetros...
+
+// .alias('append', ['a'])
+// .describe('append', 'Adiciona o texto específico no final do nome do diretório')
+// .alias('name', ['n'])
+// .describe('name', 'Altera o nome do diretório')
+// .describe('append-latest-minor', 'Adiciona a minor version no final do nome do diretório')
     var rootPath = path.resolve('.', name + '_v' + majorVersion);
-
-
 
     log('Verifica se o diretório do projeto existe... ' + rootPath.cyan);
     if (fs.existsSync(rootPath)) {
@@ -76,18 +80,29 @@ npm.load({}, function (err) {
     fs.mkdirSync(path.resolve(rootPath, 'logs'));
     fs.mkdirSync(path.resolve(rootPath, 'node_modules'));
 
+    // npm.config.set()
 
-    
+    npm.commands.install(rootPath, [packageFullName], function (err, data) {
+      if (err) {
+        log('Erro ao instalar o app como dependência.'.red + '\n' + err.message);
+        process.exit(1);
+      }
+
+      console.log(data);
+
+
+
+    });
 
 
 
 
 
-// .alias('append', ['a'])
-// .describe('append', 'Adiciona o texto específico no final do nome do diretório')
-// .alias('name', ['n'])
-// .describe('name', 'Altera o nome do diretório')
-// .describe('append-latest-minor', 'Adiciona a minor version no final do nome do diretório')
+
+
+
+
+
 
 
 

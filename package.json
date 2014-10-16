@@ -6,14 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Eder Ávila Prado <prado.eder@gmail.com>",
+  "author": "@ederavilaprado <prado.eder@gmail.com>",
   "license": "ISC",
   "bin": {
     "sinopia": "./bin/mpm"
   },
+  "preferGlobal": true,
   "dependencies": {
-    "colors": "^1.0.3",
-    "lodash": "^2.4.1",
-    "yargs": "^1.3.2"
+    "colors": "1.0.3",
+    "lodash": "2.4.1",
+    "yargs": "1.3.2"
   }
 }

@@ -5,10 +5,15 @@ var npm = require('npm'); // Utiliza o do package global
 var _ = require('lodash');
 require('colors');
 
-var pmTwoVersion = 'pm2@0.11.1'; // latest version 16/10/2014
+var packages = [
+  'pm2@0.11.1',
+  'colors@1.0.3',
+  'lodash@2.4.1',
+  'yargs@1.3.2'
+];
 
 var args = require('yargs')
-  .usage('Inicia diretório com estrutura base como "container" para um determinado projeto e instala o mesmo pelo npm'.underline.green + '\nUsage: $0 nome-pacote-npm')
+  .usage('Inicia diretório com estrutura base como "container" para um determinado projeto e instala o mesmo pelo npm'.underline.green + '\nUsage: $0 <nome-pacote-npm>')
 
   .example('$0 projeto-teste', '-> projeto-teste_v1')
   .example('$0 projeto-teste@v2.3.1', '-> projeto-teste_v2')
@@ -81,13 +86,20 @@ npm.load({}, function (err) {
     fs.mkdirSync(path.resolve(rootPath, 'logs'));
     fs.mkdirSync(path.resolve(rootPath, 'node_modules'));
 
-    npm.commands.install(rootPath, [packageFullName, pmTwoVersion], function (err, data) {
+    // Adiciona o pacote desejado a lista de pacotes default
+    packages.push(packageFullName);
+
+    npm.commands.install(rootPath, packages, function (err, data) {
       if (err) {
         log('Erro ao instalar o app como dependência.'.red + '\n' + err.message);
         process.exit(1);
       }
 
-      
+      // Copia script base para inicialização para dentro do pacote
+      fs.createReadStream( path.resolve(__dirname, 'bin', 'app')).pipe(fs.createWriteStream(path.resolve(rootPath, 'app'), {flags:'w', mode: 0777}));
+
+
+
 
 
 

@@ -1,8 +1,58 @@
 #!/usr/bin/env node
 
+var pm2 = require('pm2');
+var argv = require('yargs').argv;
+var _ = require('lodash');
+require('colors');
+
+var args = require('yargs')
+  .usage(('Controla o aplicativo "' + 'mobile-vendas-api-v6.6.6' + '" instalado como dependencia nesta estrutura.').underline.green +
+    '\nUsage: $0 <commando>?' +
+    '\n\nComandos:' +
+    '\n  start'.cyan + ': Inicia a aplicação' + 
+    '\n  stop'.cyan + ': Para a aplicação' +
+    '\n  reload'.cyan + ': Reinicia a aplicação com graceful reload' +
+    '\n  kill'.cyan + ': Mata o processo do pm2 (pm2 daemon)' + ' !!!atenção, mata todos os processos que estiverem sendo mantidos pelo pm2!!!'.red
+    )
+
+  .example('$0 -- -h', 'Passa parâmetros -h direto para o projeto principal')
+  .example('$0 start -- --config ./config', 'Passa parâmetros -v direto para o projeto principal')
+
+  .help('h', 'Ajuda')
+  .argv;
+
+console.log(args);
+
+// Wrapper para um possível log...
+function log(msg) {
+  console.log(msg);
+}
+
+var command = args['_'][0];
+
+if (/^(start|stop|reload|kill)$/.test(command)) {
+  // Executa comandos do pm2
 
 
-// var pm2 = require('pm2');
-// var argv = require('yargs').argv;
-// require('colors');
 
+
+  // log('Entre com um dos comandos válidos. Para maiores informações, utilize -h como argumento'.red);
+  // process.exit(1);
+} else {
+
+  var spawn = require('child_process').spawn,
+      child = spawn('node', ['./node_modules/mobile-vendas-api/index.js'].concat(args['_']));
+
+  // TODO: obter este arquivo do npm start do packagejson do projeto destino
+
+  child.stdout.on('data', function (data) {
+    console.log(data.toString());
+  });
+  child.stderr.on('data', function (data) {
+    console.log(data.toString());
+  });
+  child.on('close', function (code) {
+    process.exit(code);
+  });
+
+}

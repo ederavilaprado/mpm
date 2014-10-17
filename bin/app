@@ -3,7 +3,15 @@
 var pm2 = require('pm2');
 var argv = require('yargs').argv;
 var _ = require('lodash');
+var fs = require('fs');
+var path = require('path');
 require('colors');
+
+
+// TODO: nome do projeto tem que vir do json fake
+
+// Carrega package.json do aplicativo a ser executado.
+var packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'node_modules', 'mobile-vendas-api', 'package.json')));
 
 var args = require('yargs')
   .usage(('Controla o aplicativo "' + 'mobile-vendas-api-v6.6.6' + '" instalado como dependencia nesta estrutura.').underline.green +
@@ -12,7 +20,7 @@ var args = require('yargs')
     '\n  start'.cyan + ': Inicia a aplicação' + 
     '\n  stop'.cyan + ': Para a aplicação' +
     '\n  reload'.cyan + ': Reinicia a aplicação com graceful reload' +
-    '\n  kill'.cyan + ': Mata o processo do pm2 (pm2 daemon)' + ' !!!atenção, mata todos os processos que estiverem sendo mantidos pelo pm2!!!'.red
+    '\n  kill'.cyan + ': Mata o processo do pm2 (pm2 daekmon)' + ' !!!atenção, mata todos os processos que estiverem sendo mantidos pelo pm2!!!'.red
     )
 
   .example('$0 -- -h', 'Passa parâmetros -h direto para o projeto principal')
@@ -28,22 +36,33 @@ function log(msg) {
   console.log(msg);
 }
 
-var command = args['_'][0];
+// Busca o script de inicialização dentro do packagejson
+if (!packageJson.scripts.start) {
+  log('Script de inicialização não está presente dentro do projeto a ser executado (npm start). Impossível iniciar a aplicação'.red);
+  process.exit(1);
+}
+var rgxStart = /(node )?(.*)/.exec(packageJson.scripts.start);
+var start = null;
+if (rgxStart) { // possui node no começo da exec
+  var a = rgxStart[2].split(' ');
+  start = {
+    file: path.resolve('.', 'node_modules', 'mobile-vendas-api', a.shift()),
+    args: a
+  };
+}
 
+// obtem comando a ser executado no caso do pm2
+var command = args['_'][0];
 if (/^(start|stop|reload|kill)$/.test(command)) {
   // Executa comandos do pm2
-
 
 
 
   // log('Entre com um dos comandos válidos. Para maiores informações, utilize -h como argumento'.red);
   // process.exit(1);
 } else {
-
   var spawn = require('child_process').spawn,
-      child = spawn('node', ['./node_modules/mobile-vendas-api/index.js'].concat(args['_']));
-
-  // TODO: obter este arquivo do npm start do packagejson do projeto destino
+      child = spawn('node', start.concat(args['_']));
 
   child.stdout.on('data', function (data) {
     console.log(data.toString());
@@ -54,5 +73,4 @@ if (/^(start|stop|reload|kill)$/.test(command)) {
   child.on('close', function (code) {
     process.exit(code);
   });
-
 }

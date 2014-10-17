@@ -20,7 +20,7 @@ var args = require('yargs')
     '\n  start'.cyan + ': Inicia a aplicação' + 
     '\n  stop'.cyan + ': Para a aplicação' +
     '\n  reload'.cyan + ': Reinicia a aplicação com graceful reload' +
-    '\n  kill'.cyan + ': Mata o processo do pm2 (pm2 daekmon)' + ' !!!atenção, mata todos os processos que estiverem sendo mantidos pelo pm2!!!'.red +
+    '\n  kill'.cyan + ': Mata o processo do pm2 para este processo (pm2 daemon local)' +
     '\n'
     )
 
@@ -53,12 +53,9 @@ if (rgxStart) {
   };
 }
 
-
-console.log(args);
-
 // obtem comando a ser executado no caso do pm2
 var command = args['_'][0];
-if (/^(start|stop|reload|kill)$/.test(command)) { // Executa comandos do pm2
+if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm2
   log('Commando informando... conectando com pm2 daemon'.green);
 
   pm2.connect(function(err) {
@@ -66,51 +63,111 @@ if (/^(start|stop|reload|kill)$/.test(command)) { // Executa comandos do pm2
       log('Erro ao se conectar com o pm2 daemon'.red + 'Erro: ' + err.stack);
       process.exit(1);
     }
-    log('Conexão com pm2 obtida com sucesso');
 
     var currentDir = __dirname.split('/').slice(-1)[0];
-
-
+    var processName = currentDir + '::' + packageJson.name + '-v' + packageJson.version;
 
     if (command === 'start') {
+      log('Iniciando processos');
+
+      // TODO: pegar args extras e passar para frente.
       // [start.file].concat(start.args).concat(args['_'])
 
-      // TODO: validar se o processo já não está em execução...
-      // TODO: pegar args extras e passar para frente.
+      // Valida se o processo já não está em execução
+      pm2.describe(processName, function (err, list){
+        if (err) {
+          log('Erro ao obter informações sobre o processo.'.red + ' Erro: ' + err.stack);
+          process.exit(1);
+        }
 
-      var options = {
-        name: currentDir + '::' + packageJson.name + '-v' + packageJson.version,
-      };
+        if (list.length > 0) {
+          log('O processo já está sendo executado.'.yellow);
+          process.exit(1);
+        }
 
-      if (args.instances) // Fork mode
-        options.instances = args.instances;
+        var options = {
+          name: processName,
+          error: path.resolve(__dirname, 'logs', 'pm2_err.log'),
+          output: path.resolve(__dirname, 'logs', 'pm2_out.log')
+        };
+        if (args.instances) // Fork mode
+          options.instances = args.instances;
 
-      pm2.start(start.file, options, function (err, proc) {
+        pm2.start(start.file, options, function (err, proc) {
+          if (err) {
+            log('Erro ao disponibilizar a aplicação'.red + ' Erro: ' + err.stack);
+            process.exit(1);
+          }
 
-        console.log('>>');
-        console.log(err);
+          log('Aplicação on-line'.green);
 
+          pm2.disconnect(function() { process.exit(0); });
+        });
+      });
 
+    } else if (command === 'list') {
+      log('Listando processos ativos');
+
+      pm2.list(function (err, list){
+        if (err) {
+          log('Erro ao obter informações da aplicação on-line.'.red + ' Erro: ' + err.stack);
+          process.exit(1);
+        }
+        _.each(list, function (item) {
+          log('->'.green + ' Pid: ' + item.pid + '; Name: ' + item.name + '; Mem: ' + (item.monit.memory / 1000000).toFixed(2) + ' mb; Cpu: ' + item.monit.cpu);
+        });
+
+        pm2.disconnect(function() { process.exit(0); });
+      });
+
+    } else if (command === 'stop') {
+      log('Parando o processo');
+
+      pm2.stop(processName, function (err, proc) {
+        if (err) {
+          log('Erro ao parar o processo.'.red + ' Erro: ' + err.stack);
+          process.exit(1);
+        }
+
+        log('Processo parado com sucesso.'.green);
+
+        pm2.disconnect(function() { process.exit(0); });
+      });
+
+    } else if (command ===  'reload') {
+      log('Reiniciando processo utilizando "graceful reload"');
+
+      pm2.gracefulReload(processName, function (err, proc){
+        if (err) {
+          log('Erro ao realizar o reload do processo.'.red + ' Erro: ' + err.stack);
+          process.exit(1);
+        }
+
+        log('Processo reiniciado com sucesso.'.green);
+
+        pm2.disconnect(function() { process.exit(0); });
 
       });
+
+    } else if (command === 'kill') {
+      log('Matando daemon do pm2 local.');
+
+      pm2.killDaemon(function (err, ret){
+        if (err) {
+          log('Erro ao matar o daemon do pm2 local.'.red + ' Erro: ' + err.stack);
+          process.exit(1);
+        }
+
+        log('Pm2 daemon local encerrado.'.green);
+
+        pm2.disconnect(function() { process.exit(0); });
+
+      });
+
     }
-
-
-    // pm2.start('index.js', { name: 'mobile-api', instances:1 }, function(err, proc) {
-
-    // pm2.describe(proc_name|proc_id, fn(err, list){})
-
-
-
-
-
-
-
 
   });
 
-
-  // console.log(command);
 } else {
   var spawn = require('child_process').spawn,
       child = spawn('node', [start.file].concat(start.args).concat(args['_']));

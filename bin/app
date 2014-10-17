@@ -8,28 +8,30 @@ var path = require('path');
 require('colors');
 
 
-// TODO: nome do projeto tem que vir do json fake
-
+// Carrega arquivo com informações do projeto
+var infoJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, '.info.json')));
 // Carrega package.json do aplicativo a ser executado.
-var packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'node_modules', 'mobile-vendas-api', 'package.json')));
+var packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'node_modules', infoJson.appName, 'package.json')));
 
 var args = require('yargs')
-  .usage(('Controla o aplicativo "' + 'mobile-vendas-api-v6.6.6' + '" instalado como dependencia nesta estrutura.').underline.green +
+  .usage(('Controla o aplicativo "' + packageJson.name + '-v' + packageJson.version + '" instalado como dependencia nesta estrutura.').underline.green +
     '\nUsage: $0 <commando>?' +
     '\n\nComandos:' +
     '\n  start'.cyan + ': Inicia a aplicação' + 
     '\n  stop'.cyan + ': Para a aplicação' +
     '\n  reload'.cyan + ': Reinicia a aplicação com graceful reload' +
-    '\n  kill'.cyan + ': Mata o processo do pm2 (pm2 daekmon)' + ' !!!atenção, mata todos os processos que estiverem sendo mantidos pelo pm2!!!'.red
+    '\n  kill'.cyan + ': Mata o processo do pm2 (pm2 daekmon)' + ' !!!atenção, mata todos os processos que estiverem sendo mantidos pelo pm2!!!'.red +
+    '\n'
     )
 
   .example('$0 -- -h', 'Passa parâmetros -h direto para o projeto principal')
-  .example('$0 start -- --config ./config', 'Passa parâmetros -v direto para o projeto principal')
+  .example('$0 start -- --config ./config', 'Passa parâmetros --config direto para o projeto principal')
+
+  .alias('instances', 'i')
+  .describe('instances', 'Quantidade de nós para o cluster da aplicação. Se não informado, executa em modo "fork"')
 
   .help('h', 'Ajuda')
   .argv;
-
-console.log(args);
 
 // Wrapper para um possível log...
 function log(msg) {
@@ -46,23 +48,74 @@ var start = null;
 if (rgxStart) {
   var a = rgxStart[2].split(' ');
   start = {
-    file: path.resolve('.', 'node_modules', 'mobile-vendas-api', a.shift()),
+    file: path.resolve('.', 'node_modules', packageJson.name, a.shift()),
     args: a
   };
 }
 
+
+console.log(args);
+
 // obtem comando a ser executado no caso do pm2
 var command = args['_'][0];
-if (/^(start|stop|reload|kill)$/.test(command)) {
-  // Executa comandos do pm2
+if (/^(start|stop|reload|kill)$/.test(command)) { // Executa comandos do pm2
+  log('Commando informando... conectando com pm2 daemon'.green);
+
+  pm2.connect(function(err) {
+    if (err) {
+      log('Erro ao se conectar com o pm2 daemon'.red + 'Erro: ' + err.stack);
+      process.exit(1);
+    }
+    log('Conexão com pm2 obtida com sucesso');
+
+    var currentDir = __dirname.split('/').slice(-1)[0];
 
 
 
-  // log('Entre com um dos comandos válidos. Para maiores informações, utilize -h como argumento'.red);
-  // process.exit(1);
+    if (command === 'start') {
+      // [start.file].concat(start.args).concat(args['_'])
+
+      // TODO: validar se o processo já não está em execução...
+      // TODO: pegar args extras e passar para frente.
+
+      var options = {
+        name: currentDir + '_' + packageJson.name + '-v' + packageJson.version,
+      };
+
+      if (args.instances) // Fork mode
+        options.instances = args.instances;
+
+      pm2.start(start.file, options, function (err, proc) {
+
+        console.log('>>');
+        console.log(err);
+
+
+
+
+
+      });
+    }
+
+
+    // pm2.start('index.js', { name: 'mobile-api', instances:1 }, function(err, proc) {
+
+    // pm2.describe(proc_name|proc_id, fn(err, list){})
+
+
+
+
+
+
+
+
+  });
+
+
+  // console.log(command);
 } else {
   var spawn = require('child_process').spawn,
-      child = spawn('node', start.concat(args['_']));
+      child = spawn('node', [start.file].concat(start.args).concat(args['_']));
 
   child.stdout.on('data', function (data) {
     console.log(data.toString());

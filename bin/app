@@ -43,7 +43,7 @@ if (!packageJson.scripts.start) {
 }
 var rgxStart = /(node )?(.*)/.exec(packageJson.scripts.start);
 var start = null;
-if (rgxStart) { // possui node no começo da exec
+if (rgxStart) {
   var a = rgxStart[2].split(' ');
   start = {
     file: path.resolve('.', 'node_modules', 'mobile-vendas-api', a.shift()),

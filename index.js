@@ -96,7 +96,7 @@ npm.load({}, function (err) {
       }
 
       // Copia script base para inicialização para dentro do pacote
-      fs.createReadStream( path.resolve(__dirname, 'bin', 'app')).pipe(fs.createWriteStream(path.resolve(rootPath, 'app'), {flags:'w', mode: 0777}));
+      fs.createReadStream( path.resolve(__dirname, 'bin', 'app')).pipe(fs.createWriteStream(path.resolve(rootPath, 'app'), {flags:'w', mode: 0755}));
       // Cria arquivo com informações para futuro start
       fs.writeFileSync(path.resolve(rootPath, '.info.json'),
         JSON.stringify({

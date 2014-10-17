@@ -21,14 +21,19 @@ var args = require('yargs')
     '\n  stop'.cyan + ': Para a aplicação' +
     '\n  reload'.cyan + ': Reinicia a aplicação com graceful reload' +
     '\n  kill'.cyan + ': Mata o processo do pm2 para este processo (pm2 daemon local)' +
+    '\n  exec'.cyan + ': Executa o projeto sem o pm2' +
     '\n'
     )
 
   .example('$0 -- -h', 'Passa parâmetros -h direto para o projeto principal')
   .example('$0 start -- --config ./config', 'Passa parâmetros --config direto para o projeto principal')
 
+
+
   .alias('instances', 'i')
   .describe('instances', 'Quantidade de nós para o cluster da aplicação. Se não informado, executa em modo "fork"')
+
+  .demand(1, 'Informe o comando desejado')
 
   .help('h', 'Ajuda')
   .argv;
@@ -168,7 +173,7 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
 
   });
 
-} else {
+} else if (command == 'exec') {
   var spawn = require('child_process').spawn,
       child = spawn('node', [start.file].concat(start.args).concat(args['_']));
 

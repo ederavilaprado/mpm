@@ -79,7 +79,7 @@ if (/^(start|stop|reload|kill)$/.test(command)) { // Executa comandos do pm2
       // TODO: pegar args extras e passar para frente.
 
       var options = {
-        name: currentDir + '_' + packageJson.name + '-v' + packageJson.version,
+        name: currentDir + '::' + packageJson.name + '-v' + packageJson.version,
       };
 
       if (args.instances) // Fork mode
@@ -89,8 +89,6 @@ if (/^(start|stop|reload|kill)$/.test(command)) { // Executa comandos do pm2
 
         console.log('>>');
         console.log(err);
-
-
 
 
 

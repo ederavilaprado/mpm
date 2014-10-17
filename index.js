@@ -103,6 +103,8 @@ npm.load({}, function (err) {
           appName: name
         }, null, 2)
       );
+      // Cria link simbólico para pm2
+      fs.symlinkSync(path.resolve(rootPath, 'node_modules', '.bin', 'pm2'), path.resolve(rootPath, 'pm2'));
 
       log( ('Pacote inicializado com sucesso no diretório: ' + rootPath).green );
 

@@ -12,6 +12,8 @@ var packages = [
   'yargs@1.3.2'
 ];
 
+
+
 var args = require('yargs')
   .usage('Inicia diretório com estrutura base como "container" para um determinado projeto e instala o mesmo pelo npm'.underline.green + '\nUsage: $0 <nome-pacote-npm>')
 
@@ -32,6 +34,7 @@ var args = require('yargs')
   .alias('append-latest-minor', ['m'])
   .describe('append-latest-minor', 'Adiciona a minor version no final do nome do diretório')
 
+  .version(JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'))).version, 'v', 'Versão')
   .help('h', 'Ajuda')
   .argv;
 

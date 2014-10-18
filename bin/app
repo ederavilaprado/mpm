@@ -53,7 +53,7 @@ var start = null;
 if (rgxStart) {
   var a = rgxStart[2].split(' ');
   start = {
-    file: path.resolve('.', 'node_modules', packageJson.name, a.shift()),
+    file: path.resolve(__dirname, 'node_modules', packageJson.name, a.shift()),
     args: a
   };
 }

@@ -12,7 +12,7 @@ var packages = [
 ];
 
 
-var args = require('yargs')
+var yargs = require('yargs')
   .usage('Inicia diretório com estrutura base como "container" para um determinado projeto e instala o mesmo pelo npm'.underline.green + '\nUsage: $0 <nome-pacote-npm>')
 
   .example('$0 projeto-teste', '-> projeto-teste_v1')
@@ -20,8 +20,6 @@ var args = require('yargs')
   .example('$0 projeto-teste@v2.3.1 -a _port_8080', '-> projeto-teste_v2_port_8080')
   .example('$0 projeto-teste@v1.1.2 -n "meu_teste_beta"', '-> meu_teste_beta')
   .example('$0 projeto-teste@v1.2.3 -m', '-> projeto-teste_v1.2')
-
-  .demand(1, 'O nome do projeto que será instalado deve ser informado. Veja exemplos acima.'.red)
 
   .alias('append', ['a'])
   .describe('append', 'Adiciona o texto específico no final do nome do diretório')
@@ -33,12 +31,20 @@ var args = require('yargs')
   .describe('append-latest-minor', 'Adiciona a minor version no final do nome do diretório')
 
   .version('v' + JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'))).version + '\n', 'v', 'Versão')
-  .help('h', 'Ajuda')
-  .argv;
+  .help('h', 'Ajuda');
+
+var args = yargs.argv;
 
 // Wrapper para um possível log...
 function log(msg) {
   console.log(msg);
+}
+
+// Valida se foi informado apenas 1 nome antes de continuar...
+if (args['_'].length !== 1) {
+  yargs.showHelp();
+  log('\nO nome do projeto que será instalado deve ser informado. Apenas 1 projeto. Veja exemplos acima.\n'.red);
+  process.exit(1);
 }
 
 log('Iniciando a criação do diretório "container" para o projeto'.green);

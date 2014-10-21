@@ -13,7 +13,7 @@ var infoJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, '.info.json'))
 // Carrega package.json do aplicativo a ser executado.
 var packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'node_modules', infoJson.appName, 'package.json')));
 
-var args = require('yargs')
+var yargs = require('yargs')
   .usage(('Controla o aplicativo "' + packageJson.name + '-v' + packageJson.version + '" instalado como dependencia nesta estrutura.').underline.green +
     '\nUsage: $0 <commando>?' +
     '\n\nComandos:' +
@@ -28,19 +28,25 @@ var args = require('yargs')
   .example('$0 -- -h', 'Passa parâmetros -h direto para o projeto principal')
   .example('$0 start -- --config ./config', 'Passa parâmetros --config direto para o projeto principal')
 
-
-
   .alias('instances', 'i')
   .describe('instances', 'Quantidade de nós para o cluster da aplicação. Se não informado, executa em modo "fork"')
 
-  .demand(1, 'Informe o comando desejado'.red)
+  .help('h', 'Ajuda');
 
-  .help('h', 'Ajuda')
-  .argv;
+var args = yargs.argv;
 
 // Wrapper para um possível log...
 function log(msg) {
   console.log(msg);
+}
+
+// Captura e testa comandos disponíveis
+var command = args['_'][0];
+
+if (/^(start|stop|reload|list|kill|exec)$/.test(command) === false) {
+  yargs.showHelp();
+  log('\nEntre com um dos comando válidos para continuar.\n'.red);
+  process.exit(1);
 }
 
 // Busca o script de inicialização dentro do packagejson
@@ -59,7 +65,6 @@ if (rgxStart) {
 }
 
 // obtem comando a ser executado no caso do pm2
-var command = args['_'][0];
 if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm2
   log('Commando informando... conectando com pm2 daemon'.green);
 

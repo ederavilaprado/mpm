@@ -40,8 +40,8 @@ function log(msg) {
   console.log(msg);
 }
 
-// Captura e testa comandos disponíveis
-var command = args['_'][0];
+// Remove o primeiro parâmetro, no caso o comando do args.
+var command = args['_'].shift();
 
 if (/^(start|stop|reload|list|kill|exec)$/.test(command) === false) {
   yargs.showHelp();
@@ -80,9 +80,6 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
     if (command === 'start') {
       log('Iniciando processos');
 
-      // TODO: pegar args extras e passar para frente.
-      // [start.file].concat(start.args).concat(args['_'])
-
       // Valida se o processo já não está em execução
       pm2.describe(processName, function (err, list){
         if (err) {
@@ -98,7 +95,8 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
         var options = {
           name: processName,
           error: path.resolve(__dirname, 'logs', 'pm2_err.log'),
-          output: path.resolve(__dirname, 'logs', 'pm2_out.log')
+          output: path.resolve(__dirname, 'logs', 'pm2_out.log'),
+          scriptArgs: start.args.concat(args['_'])
         };
         if (args.instances) // Fork mode
           options.instances = args.instances;

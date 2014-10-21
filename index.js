@@ -6,12 +6,10 @@ var _ = require('lodash');
 require('colors');
 
 var packages = [
-  'pm2@0.11.1',
   'colors@1.0.3',
   'lodash@2.4.1',
   'yargs@1.3.2'
 ];
-
 
 
 var args = require('yargs')
@@ -34,7 +32,7 @@ var args = require('yargs')
   .alias('append-latest-minor', ['m'])
   .describe('append-latest-minor', 'Adiciona a minor version no final do nome do diretório')
 
-  .version(JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'))).version, 'v', 'Versão')
+  .version('v' + JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'))).version + '\n', 'v', 'Versão')
   .help('h', 'Ajuda')
   .argv;
 
@@ -106,8 +104,6 @@ npm.load({}, function (err) {
           appName: name
         }, null, 2)
       );
-      // Cria link simbólico para pm2
-      fs.symlinkSync(path.resolve(rootPath, 'node_modules', '.bin', 'pm2'), path.resolve(rootPath, 'pm2'));
 
       log( ('Pacote inicializado com sucesso no diretório: ' + rootPath).green );
 

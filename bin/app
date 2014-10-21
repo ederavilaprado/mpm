@@ -33,7 +33,7 @@ var args = require('yargs')
   .alias('instances', 'i')
   .describe('instances', 'Quantidade de nós para o cluster da aplicação. Se não informado, executa em modo "fork"')
 
-  .demand(1, 'Informe o comando desejado')
+  .demand(1, 'Informe o comando desejado'.red)
 
   .help('h', 'Ajuda')
   .argv;

@@ -11,6 +11,7 @@ var packages = [
   'yargs@1.3.2'
 ];
 
+// https://gentlenode.com/journal/node-1-npm-complete-cheatsheet/19
 
 var yargs = require('yargs')
   .usage('Inicia diretório com estrutura base como "container" para um determinado projeto e instala o mesmo pelo npm'.underline.green + '\nUsage: $0 <nome-pacote-npm>')
@@ -66,6 +67,12 @@ npm.load({}, function (err) {
       process.exit(1);
     }
 
+    // Valida se o pacote existe
+    if ( _.isEmpty(data)) {
+      log('Versão do pacote não encontrada.'.red);
+      process.exit(1);
+    }
+
     // Pega versão disponível mais atual
     var version = _.keys(data)[0];
     var name = data[version].name;
@@ -87,53 +94,61 @@ npm.load({}, function (err) {
       rootPath = name + '_v' + majorVersion;
 
     log('Verifica se o diretório do projeto existe... ' + rootPath.cyan);
+
+    // Valida se já existe o pacote e apenas atualiza o mesmo.
     if (fs.existsSync(rootPath)) {
-      log('Diretório do projeto já existe... impossível continuar'.red);
-      process.exit(1);
-    }
-    log('Cria o diretório base para o projeto');
-    fs.mkdirSync(rootPath);
-    log('Cria diretórios dentro da base do projeto');
-    fs.mkdirSync(path.resolve(rootPath, 'configs'));
-    fs.mkdirSync(path.resolve(rootPath, 'logs'));
-    fs.mkdirSync(path.resolve(rootPath, 'node_modules'));
+      log('Diretório já existe... modificando versão do projeto.'.yellow);
+      npm.commands.install(rootPath, [packageFullName], function (err, data) {
+        if (err) {
+          log( ('Erro ao modificar a versão do projeto. Err: ' + err.message).red);
+          process.exit(1);
+        }
+      });
 
-    // Adiciona o pacote desejado a lista de pacotes default
-    packages.push(packageFullName);
+    } else {
+      log('Cria o diretório base para o projeto');
+      fs.mkdirSync(rootPath);
+      log('Cria diretórios dentro da base do projeto');
+      fs.mkdirSync(path.resolve(rootPath, 'configs'));
+      fs.mkdirSync(path.resolve(rootPath, 'logs'));
+      fs.mkdirSync(path.resolve(rootPath, 'node_modules'));
 
-    log('Inicia instalação de pacotes do projeto');
-    npm.commands.install(rootPath, packages, function (err, data) {
-      if (err) {
-        log('Erro ao instalar o app como dependência.'.red + '\n' + err.message);
-        process.exit(1);
-      }
+      // Adiciona o pacote desejado a lista de pacotes default
+      packages.push(packageFullName);
 
-      // Copia script base para inicialização para dentro do pacote
-      fs.createReadStream( path.resolve(__dirname, 'bin', 'app')).pipe(fs.createWriteStream(path.resolve(rootPath, 'app'), {flags:'w', mode: 0755}));
-      // Cria arquivo com informações para futuro start
-      fs.writeFileSync(path.resolve(rootPath, '.info.json'),
-        JSON.stringify({
-          appName: name
-        }, null, 2)
-      );
-
-
-      // FIXME: Verificar se existe uma forma de fazer isto com o npm prog.
-      // npm.commands.link(rootPath, ['pm2'], function (err, data) {
-      // CAUTION: alterar o prefix alterar para toda a estrutura do npm
-      var exec = require('child_process').exec,
-          child;
-
-      child = exec('cd ' + rootPath + ' && npm link pm2', function (error, stdout, stderr) {
-        if (error !== null) {
-          log('Erro ao realizar o link para o pm2 dentro de node_modules'.red);
+      log('Inicia instalação de pacotes do projeto');
+      npm.commands.install(rootPath, packages, function (err, data) {
+        if (err) {
+          log('Erro ao instalar o app como dependência.'.red + '\n' + err.message);
           process.exit(1);
         }
 
-        log( ('Pacote inicializado com sucesso no diretório: ' + rootPath).green );
-      });
+        // Copia script base para inicialização para dentro do pacote
+        fs.createReadStream( path.resolve(__dirname, 'bin', 'app')).pipe(fs.createWriteStream(path.resolve(rootPath, 'app'), {flags:'w', mode: 0755}));
+        // Cria arquivo com informações para futuro start
+        fs.writeFileSync(path.resolve(rootPath, '.info.json'),
+          JSON.stringify({
+            appName: name
+          }, null, 2)
+        );
 
-    });
+        // FIXME: Verificar se existe uma forma de fazer isto com o npm prog.
+        // npm.commands.link(rootPath, ['pm2'], function (err, data) {
+        // CAUTION: alterar o prefix alterar para toda a estrutura do npm
+        var exec = require('child_process').exec,
+            child;
+
+        child = exec('cd ' + rootPath + ' && npm link pm2', function (error, stdout, stderr) {
+          if (error !== null) {
+            log('Erro ao realizar o link para o pm2 dentro de node_modules'.red);
+            process.exit(1);
+          }
+
+          log( ('Pacote inicializado com sucesso no diretório: ' + rootPath).green );
+        });
+      });
+    }
+    
   });
 });
 

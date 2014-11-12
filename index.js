@@ -54,6 +54,11 @@ var packageFullName = args['_'][0];
 npm.load({}, function (err) {
   // npm.config.set('loglevel', 'warn');
 
+  if (err) {
+    log('Foi encontrado um erro ao carregar o npm.'.red);
+    process.exit(1);
+  }
+
   // Busca o pacote a ser instalado
   npm.commands.view([packageFullName], true, function (err, data) {
     if (err) {
@@ -96,6 +101,7 @@ npm.load({}, function (err) {
     // Adiciona o pacote desejado a lista de pacotes default
     packages.push(packageFullName);
 
+    log('Inicia instalação de pacotes do projeto');
     npm.commands.install(rootPath, packages, function (err, data) {
       if (err) {
         log('Erro ao instalar o app como dependência.'.red + '\n' + err.message);
@@ -111,8 +117,23 @@ npm.load({}, function (err) {
         }, null, 2)
       );
 
-      log( ('Pacote inicializado com sucesso no diretório: ' + rootPath).green );
+
+      // FIXME: Verificar se existe uma forma de fazer isto com o npm prog.
+      // npm.commands.link(rootPath, ['pm2'], function (err, data) {
+      // CAUTION: alterar o prefix alterar para toda a estrutura do npm
+      var exec = require('child_process').exec,
+          child;
+
+      child = exec('cd ' + rootPath + ' && npm link pm2', function (error, stdout, stderr) {
+        if (error !== null) {
+          log('Erro ao realizar o link para o pm2 dentro de node_modules'.red);
+          process.exit(1);
+        }
+
+        log( ('Pacote inicializado com sucesso no diretório: ' + rootPath).green );
+      });
 
     });
   });
 });
+

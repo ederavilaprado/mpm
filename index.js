@@ -78,7 +78,7 @@ npm.load({}, function (err) {
     var name = data[version].name;
 
     // Pegando versões do código
-    var v = /(\d)+\.(\d)+\.(.+)/.exec(version);
+    var v = /(\d+)\.(\d+)\.(.+)/.exec(version);
     var majorVersion = v[1];
     var minorVersion = v[2];
     var patchVersion = v[3];

@@ -16,11 +16,11 @@ var packages = [
 var yargs = require('yargs')
   .usage('Inicia diretório com estrutura base como "container" para um determinado projeto e instala o mesmo pelo npm'.underline.green + '\nUsage: $0 <nome-pacote-npm>')
 
-  .example('$0 projeto-teste', '-> projeto-teste_v1')
-  .example('$0 projeto-teste@v2.3.1', '-> projeto-teste_v2')
-  .example('$0 projeto-teste@v2.3.1 -a _port_8080', '-> projeto-teste_v2_port_8080')
-  .example('$0 projeto-teste@v1.1.2 -n "meu_teste_beta"', '-> meu_teste_beta')
-  .example('$0 projeto-teste@v1.2.3 -m', '-> projeto-teste_v1.2')
+  .example('$0 projeto-teste', '-> projeto-teste_v2')
+  .example('$0 projeto-teste@2.3.1', '-> projeto-teste_v2')
+  .example('$0 projeto-teste@2.3.1 -a _port_8080', '-> projeto-teste_v2_port_8080')
+  .example('$0 projeto-teste@1.1.2 -n "meu_teste_beta"', '-> meu_teste_beta')
+  .example('$0 projeto-teste@1.2.3 -m', '-> projeto-teste_v1.2')
 
   .alias('append', ['a'])
   .describe('append', 'Adiciona o texto específico no final do nome do diretório')
@@ -78,7 +78,7 @@ npm.load({}, function (err) {
     var name = data[version].name;
 
     // Pegando versões do código
-    var v = /(\d)+\.(\d)\.(.+)/.exec(version);
+    var v = /(\d)+\.(\d)+\.(.+)/.exec(version);
     var majorVersion = v[1];
     var minorVersion = v[2];
     var patchVersion = v[3];

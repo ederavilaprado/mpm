@@ -3,6 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var npm = require('npm'); // Utiliza o do package global
 var _ = require('lodash');
+var uuid = require('node-uuid');
 require('colors');
 
 var packages = [
@@ -128,7 +129,8 @@ npm.load({}, function (err) {
         // Cria arquivo com informações para futuro start
         fs.writeFileSync(path.resolve(rootPath, '.info.json'),
           JSON.stringify({
-            appName: name
+            appName: name,
+            creationHash: uuid()
           }, null, 2)
         );
 

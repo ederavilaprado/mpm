@@ -75,7 +75,7 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
     }
 
     var currentDir = __dirname.split('/').slice(-1)[0];
-    var processName = currentDir + '::' + packageJson.name + '-v' + packageJson.version;
+    var processName = currentDir + '::' + infoJson.appName + '::' + infoJson.creationHash;
 
     if (command === 'start') {
       log('Iniciando processos');

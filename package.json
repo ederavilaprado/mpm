@@ -1,6 +1,6 @@
 {
   "name": "mpm",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Carrega pacotes para ambiente de produção",
   "main": "index.js",
   "scripts": {

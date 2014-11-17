@@ -141,10 +141,20 @@ npm.load({}, function (err) {
             child;
 
         child = exec('cd ' + rootPath + ' && npm link pm2', function (error, stdout, stderr) {
-          if (error !== null) {
-            log('Erro ao realizar o link para o pm2 dentro de node_modules'.red);
-            process.exit(1);
-          }
+
+          console.log('Debug mode>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+
+          console.log(error);
+          console.log(stdout);
+          console.log(stderr);
+
+          console.log('---------------------------------------------');
+
+
+          // if (error !== null) {
+          //   log('Erro ao realizar o link para o pm2 dentro de node_modules'.red);
+          //   process.exit(1);
+          // }
 
           log( ('Pacote inicializado com sucesso no diretório: ' + rootPath).green );
         });

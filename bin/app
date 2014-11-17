@@ -77,7 +77,10 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
     var currentDir = __dirname.split('/').slice(-1)[0];
     var processName = currentDir + '::' + infoJson.appName + '::' + infoJson.creationHash;
 
-    if (command === 'start') {
+    /**
+     * Comandos do pm2
+     */
+    function startApp() {
       log('Iniciando processos');
 
       // Valida se o processo já não está em execução
@@ -112,8 +115,9 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
           pm2.disconnect(function() { process.exit(0); });
         });
       });
+    }
 
-    } else if (command === 'list') {
+    function listApp() {
       log('Listando processos ativos');
 
       pm2.list(function (err, list){
@@ -127,8 +131,9 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
 
         pm2.disconnect(function() { process.exit(0); });
       });
+    }
 
-    } else if (command === 'stop') {
+    function stopApp() {
       log('Parando o processo');
 
       pm2.stop(processName, function (err, proc) {
@@ -141,14 +146,15 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
 
         pm2.disconnect(function() { process.exit(0); });
       });
+    }
 
-    } else if (command ===  'reload') {
+    function reloadApp() {
       log('Reiniciando processo utilizando "graceful reload"');
 
       pm2.gracefulReload(processName, function (err, proc){
         if (err) {
-          log('Erro ao realizar o reload do processo.'.red + ' Erro: ' + err.stack);
-          process.exit(1);
+          log('Processo não existe, iniciando o mesmo "start".'.yellow);
+          return startApp();
         }
 
         log('Processo reiniciado com sucesso.'.green);
@@ -156,8 +162,9 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
         pm2.disconnect(function() { process.exit(0); });
 
       });
+    }
 
-    } else if (command === 'kill') {
+    function kill() {
       log('Matando daemon do pm2 local.');
 
       pm2.killDaemon(function (err, ret){
@@ -169,9 +176,21 @@ if (/^(start|stop|reload|list|kill)$/.test(command)) { // Executa comandos do pm
         log('Pm2 daemon local encerrado.'.green);
 
         pm2.disconnect(function() { process.exit(0); });
-
       });
+    }
 
+
+
+    if (command === 'start') {
+      startApp();
+    } else if (command === 'list') {
+      listApp();
+    } else if (command === 'stop') {
+      stopApp();
+    } else if (command ===  'reload') {
+      reloadApp();
+    } else if (command === 'kill') {
+      kill();
     }
 
   });

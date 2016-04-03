@@ -1,0 +1,6 @@
+site_name: MkDocs Teste
+pages:
+- Hello: index.md
+- User Guide:
+  - Writing teste: user-guide/index.md
+  - Blooo: user-guide/bla.md
